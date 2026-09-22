@@ -1,3 +1,6 @@
 .vercel/
 site-check*.png
 node_modules/
+
+.vercel
+.env*
