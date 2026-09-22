@@ -17,10 +17,13 @@ const heroDino = document.querySelector(".hero-dino");
 const dinoImage = heroDino?.querySelector("img");
 const dinoNote = heroDino?.querySelector(".dino-note");
 const dinoDebris = document.querySelector(".dino-debris");
+const dinoPaint = document.getElementById("dino-paint");
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 let dinoProgress = reducedMotion ? 1 : 0;
 let dinoUnlocked = reducedMotion;
 let touchStartY = 0;
+let paintContext;
+let lastEraserPoint;
 
 function renderDino(progress) {
   if (!heroDino || !dinoImage || !dinoNote) return;
@@ -120,6 +123,78 @@ function playExplosionSound() {
   window.setTimeout(() => audio.close(), 1150);
 }
 
+function drawRedPaint() {
+  if (!dinoPaint) return;
+
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+  dinoPaint.width = Math.round(window.innerWidth * pixelRatio);
+  dinoPaint.height = Math.round(window.innerHeight * pixelRatio);
+  paintContext = dinoPaint.getContext("2d");
+  paintContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+  const splats = [
+    [0.07, 0.12, 102], [0.32, 0.07, 72], [0.66, 0.15, 128], [0.91, 0.34, 88],
+    [0.12, 0.55, 115], [0.45, 0.47, 68], [0.76, 0.62, 132], [0.29, 0.86, 64],
+    [0.57, 0.9, 96], [0.94, 0.88, 78],
+  ];
+
+  function paintSplat(x, y, radius, rotation) {
+    const points = 17;
+    paintContext.save();
+    paintContext.translate(x, y);
+    paintContext.rotate(rotation);
+    paintContext.fillStyle = "rgba(209, 22, 40, .82)";
+    paintContext.beginPath();
+
+    for (let index = 0; index <= points; index += 1) {
+      const angle = (Math.PI * 2 * index) / points;
+      const wobble = 0.72 + ((index * 37) % 29) / 80;
+      const pointX = Math.cos(angle) * radius * wobble;
+      const pointY = Math.sin(angle) * radius * wobble;
+      if (index === 0) paintContext.moveTo(pointX, pointY);
+      else paintContext.lineTo(pointX, pointY);
+    }
+
+    paintContext.fill();
+    for (let index = 0; index < 5; index += 1) {
+      const angle = rotation + index * 1.21;
+      const distance = radius * (1.1 + index * 0.25);
+      paintContext.beginPath();
+      paintContext.arc(Math.cos(angle) * distance, Math.sin(angle) * distance, radius * (0.08 + (index % 3) * 0.035), 0, Math.PI * 2);
+      paintContext.fill();
+    }
+    paintContext.restore();
+  }
+
+  splats.forEach(([x, y, radius], index) => {
+    paintSplat(window.innerWidth * x, window.innerHeight * y, radius, index * 0.71);
+  });
+}
+
+function eraseRedPaint(event) {
+  if (!document.body.classList.contains("dino-exploded") || !paintContext) return;
+
+  const currentPoint = { x: event.clientX, y: event.clientY };
+  paintContext.save();
+  paintContext.globalCompositeOperation = "destination-out";
+  paintContext.lineWidth = 58;
+  paintContext.lineCap = "round";
+  paintContext.beginPath();
+  if (lastEraserPoint) {
+    paintContext.moveTo(lastEraserPoint.x, lastEraserPoint.y);
+    paintContext.lineTo(currentPoint.x, currentPoint.y);
+    paintContext.stroke();
+  } else {
+    paintContext.arc(currentPoint.x, currentPoint.y, 29, 0, Math.PI * 2);
+    paintContext.fill();
+  }
+  paintContext.restore();
+  lastEraserPoint = currentPoint;
+}
+
+window.addEventListener("pointermove", eraseRedPaint, { passive: true });
+window.addEventListener("blur", () => { lastEraserPoint = undefined; });
+
 if (heroDino && dinoImage && dinoNote) {
   renderDino(dinoProgress);
 
@@ -158,6 +233,7 @@ if (heroDino && dinoImage && dinoNote) {
     if (heroDino.classList.contains("is-exploded")) return;
 
     playExplosionSound();
+    drawRedPaint();
     const box = heroDino.getBoundingClientRect();
     const colors = ["#40aebe", "#f58220", "#fff4e5", "#0c3155", "#f2ac36"];
 
