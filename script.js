@@ -50,6 +50,45 @@ function advanceDino(amount) {
   if (dinoProgress === 1) unlockPage();
 }
 
+function playExplosionSound() {
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return;
+
+  const audio = new AudioContext();
+  const now = audio.currentTime;
+  const master = audio.createGain();
+  master.gain.setValueAtTime(0.0001, now);
+  master.gain.exponentialRampToValueAtTime(0.3, now + 0.015);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
+  master.connect(audio.destination);
+
+  const boom = audio.createOscillator();
+  boom.type = "sine";
+  boom.frequency.setValueAtTime(125, now);
+  boom.frequency.exponentialRampToValueAtTime(38, now + 0.52);
+  boom.connect(master);
+  boom.start(now);
+  boom.stop(now + 0.55);
+
+  const noiseBuffer = audio.createBuffer(1, audio.sampleRate * 0.32, audio.sampleRate);
+  const noiseData = noiseBuffer.getChannelData(0);
+  for (let index = 0; index < noiseData.length; index += 1) {
+    noiseData[index] = (Math.random() * 2 - 1) * (1 - index / noiseData.length);
+  }
+
+  const noise = audio.createBufferSource();
+  const filter = audio.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.setValueAtTime(900, now);
+  noise.buffer = noiseBuffer;
+  noise.connect(filter);
+  filter.connect(master);
+  noise.start(now);
+  noise.stop(now + 0.32);
+
+  window.setTimeout(() => audio.close(), 900);
+}
+
 if (heroDino && dinoImage && dinoNote) {
   renderDino(dinoProgress);
 
@@ -87,6 +126,7 @@ if (heroDino && dinoImage && dinoNote) {
   function explodeDino() {
     if (heroDino.classList.contains("is-exploded")) return;
 
+    playExplosionSound();
     const box = heroDino.getBoundingClientRect();
     const colors = ["#40aebe", "#f58220", "#fff4e5", "#0c3155", "#f2ac36"];
 
