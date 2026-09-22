@@ -16,6 +16,7 @@ form.addEventListener("submit", (event) => {
 const heroDino = document.querySelector(".hero-dino");
 const dinoImage = heroDino?.querySelector("img");
 const dinoNote = heroDino?.querySelector(".dino-note");
+const dinoDebris = document.querySelector(".dino-debris");
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 let dinoProgress = reducedMotion ? 1 : 0;
 let dinoUnlocked = reducedMotion;
@@ -85,6 +86,29 @@ if (heroDino && dinoImage && dinoNote) {
 
   function explodeDino() {
     if (heroDino.classList.contains("is-exploded")) return;
+
+    const box = heroDino.getBoundingClientRect();
+    const colors = ["#40aebe", "#f58220", "#fff4e5", "#0c3155", "#f2ac36"];
+
+    for (let index = 0; index < 72; index += 1) {
+      const angle = (Math.PI * 2 * index) / 72 + (Math.random() - 0.5) * 0.42;
+      const distance = 100 + Math.random() * 440;
+      const shard = document.createElement("i");
+      const startX = box.left + box.width * (0.22 + Math.random() * 0.55);
+      const startY = box.top + box.height * (0.18 + Math.random() * 0.64);
+
+      shard.className = "dino-shard";
+      shard.style.setProperty("--start-x", `${startX}px`);
+      shard.style.setProperty("--start-y", `${startY}px`);
+      shard.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+      shard.style.setProperty("--dy", `${Math.sin(angle) * distance + 90}px`);
+      shard.style.setProperty("--size", `${10 + Math.round(Math.random() * 26)}px`);
+      shard.style.setProperty("--turn", `${Math.round((Math.random() - 0.5) * 1080)}deg`);
+      shard.style.setProperty("--duration", `${1.05 + Math.random() * 0.85}s`);
+      shard.style.setProperty("--delay", `${Math.random() * 0.12}s`);
+      shard.style.setProperty("--shard-color", colors[index % colors.length]);
+      dinoDebris?.append(shard);
+    }
 
     heroDino.classList.add("is-exploded");
     heroDino.setAttribute("aria-label", "Le dinosaure a explosé en taches rouges graphiques");
