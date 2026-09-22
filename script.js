@@ -58,35 +58,66 @@ function playExplosionSound() {
   const now = audio.currentTime;
   const master = audio.createGain();
   master.gain.setValueAtTime(0.0001, now);
-  master.gain.exponentialRampToValueAtTime(0.3, now + 0.015);
-  master.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
-  master.connect(audio.destination);
+  master.gain.exponentialRampToValueAtTime(0.55, now + 0.008);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + 0.95);
+
+  const compressor = audio.createDynamicsCompressor();
+  compressor.threshold.setValueAtTime(-18, now);
+  compressor.knee.setValueAtTime(18, now);
+  compressor.ratio.setValueAtTime(10, now);
+  master.connect(compressor);
+  compressor.connect(audio.destination);
 
   const boom = audio.createOscillator();
-  boom.type = "sine";
-  boom.frequency.setValueAtTime(125, now);
-  boom.frequency.exponentialRampToValueAtTime(38, now + 0.52);
-  boom.connect(master);
+  const boomGain = audio.createGain();
+  boom.type = "sawtooth";
+  boom.frequency.setValueAtTime(96, now);
+  boom.frequency.exponentialRampToValueAtTime(27, now + 0.7);
+  boomGain.gain.setValueAtTime(0.7, now);
+  boomGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.72);
+  boom.connect(boomGain);
+  boomGain.connect(master);
   boom.start(now);
-  boom.stop(now + 0.55);
+  boom.stop(now + 0.75);
 
-  const noiseBuffer = audio.createBuffer(1, audio.sampleRate * 0.32, audio.sampleRate);
+  const noiseBuffer = audio.createBuffer(1, audio.sampleRate * 0.78, audio.sampleRate);
   const noiseData = noiseBuffer.getChannelData(0);
   for (let index = 0; index < noiseData.length; index += 1) {
-    noiseData[index] = (Math.random() * 2 - 1) * (1 - index / noiseData.length);
+    const falloff = 1 - index / noiseData.length;
+    noiseData[index] = (Math.random() * 2 - 1) * falloff * falloff;
   }
 
   const noise = audio.createBufferSource();
-  const filter = audio.createBiquadFilter();
-  filter.type = "lowpass";
-  filter.frequency.setValueAtTime(900, now);
+  const highPass = audio.createBiquadFilter();
+  const lowPass = audio.createBiquadFilter();
+  const noiseGain = audio.createGain();
+  highPass.type = "highpass";
+  highPass.frequency.setValueAtTime(85, now);
+  lowPass.type = "lowpass";
+  lowPass.frequency.setValueAtTime(2200, now);
+  noiseGain.gain.setValueAtTime(0.9, now);
+  noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.76);
   noise.buffer = noiseBuffer;
-  noise.connect(filter);
-  filter.connect(master);
+  noise.connect(highPass);
+  highPass.connect(lowPass);
+  lowPass.connect(noiseGain);
+  noiseGain.connect(master);
   noise.start(now);
-  noise.stop(now + 0.32);
+  noise.stop(now + 0.8);
 
-  window.setTimeout(() => audio.close(), 900);
+  const crack = audio.createOscillator();
+  const crackGain = audio.createGain();
+  crack.type = "square";
+  crack.frequency.setValueAtTime(230, now);
+  crack.frequency.exponentialRampToValueAtTime(55, now + 0.1);
+  crackGain.gain.setValueAtTime(0.38, now);
+  crackGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.13);
+  crack.connect(crackGain);
+  crackGain.connect(master);
+  crack.start(now);
+  crack.stop(now + 0.15);
+
+  window.setTimeout(() => audio.close(), 1150);
 }
 
 if (heroDino && dinoImage && dinoNote) {
