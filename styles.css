@@ -41,6 +41,26 @@ body::before {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
 }
 
+.dino-explosion { position: fixed; z-index: 110; inset: 0; pointer-events: none; overflow: hidden; visibility: hidden; }
+.splat { position: absolute; display: block; width: var(--size); height: var(--size); opacity: 0; background: #d9192a; border-radius: 46% 54% 62% 38% / 43% 42% 58% 57%; transform: translate(-50%, -50%) scale(.1) rotate(-25deg); filter: drop-shadow(0 2px 0 rgba(85, 0, 13, .3)); }
+.splat::before, .splat::after { content: ""; position: absolute; width: 30%; aspect-ratio: 1; border-radius: 50%; background: #d9192a; }
+.splat::before { right: -28%; top: 13%; box-shadow: 18px 25px 0 -4px #d9192a, -95px 82px 0 -6px #d9192a; }
+.splat::after { left: -22%; bottom: 6%; box-shadow: -25px 18px 0 -2px #d9192a, 94px -52px 0 -7px #d9192a; }
+.splat-one { --size: 210px; left: 8%; top: 13%; }
+.splat-two { --size: 135px; left: 32%; top: 7%; }
+.splat-three { --size: 260px; left: 66%; top: 15%; }
+.splat-four { --size: 175px; left: 92%; top: 34%; }
+.splat-five { --size: 230px; left: 12%; top: 54%; }
+.splat-six { --size: 145px; left: 45%; top: 47%; }
+.splat-seven { --size: 280px; left: 76%; top: 62%; }
+.splat-eight { --size: 125px; left: 29%; top: 86%; }
+.splat-nine { --size: 210px; left: 57%; top: 91%; }
+.splat-ten { --size: 160px; left: 94%; top: 88%; }
+.dino-exploded .dino-explosion { visibility: visible; }
+.dino-exploded .splat { animation: red-splat .58s cubic-bezier(.16, .85, .27, 1.2) forwards; }
+.dino-exploded .splat-two { animation-delay: .05s; }.dino-exploded .splat-three { animation-delay: .12s; }.dino-exploded .splat-four { animation-delay: .08s; }.dino-exploded .splat-five { animation-delay: .16s; }.dino-exploded .splat-six { animation-delay: .03s; }.dino-exploded .splat-seven { animation-delay: .19s; }.dino-exploded .splat-eight { animation-delay: .09s; }.dino-exploded .splat-nine { animation-delay: .14s; }.dino-exploded .splat-ten { animation-delay: .2s; }
+@keyframes red-splat { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.1) rotate(-25deg); } 55% { opacity: .9; } 100% { opacity: .78; transform: translate(-50%, -50%) scale(1) rotate(15deg); } }
+
 a { color: inherit; text-decoration: none; }
 button, input, textarea { font: inherit; }
 
@@ -115,9 +135,12 @@ h1 em, h2 em { font-family: var(--serif); font-weight: 500; color: var(--coral);
 .text-link { border-bottom: 1px solid var(--ink); font-size: 14px; font-weight: 600; }
 
 .hero-portrait { position: relative; width: min(100%, 490px); justify-self: center; transform: rotate(2deg); }
-.hero-dino { position: relative; width: min(100%, 525px); min-height: 630px; justify-self: center; }
+.hero-dino { position: relative; width: min(100%, 525px); min-height: 630px; justify-self: center; cursor: crosshair; outline: none; }
+.hero-dino:focus-visible { outline: 3px solid var(--coral); outline-offset: 7px; }
 .hero-dino img { position: absolute; inset: -75px -120px -70px -60px; width: calc(100% + 180px); height: calc(100% + 145px); object-fit: contain; mix-blend-mode: screen; filter: drop-shadow(0 17px 15px rgba(0, 0, 0, .35)); will-change: transform, opacity, clip-path; }
 .dino-note { position: absolute; z-index: 2; left: -7px; bottom: 70px; display: grid; width: 115px; height: 115px; place-items: center; border-radius: 50%; background: var(--coral); color: #07152d; box-shadow: 5px 6px 0 var(--ink); font-size: 12px; font-weight: 700; line-height: 1.15; text-align: center; text-transform: uppercase; will-change: transform, opacity; }
+.hero-dino.is-exploded { pointer-events: none; animation: dino-pop .52s ease-in forwards; }
+@keyframes dino-pop { 0% { filter: brightness(1); opacity: 1; transform: scale(1); } 20% { filter: brightness(2.4) saturate(.3); opacity: 1; transform: scale(1.12); } 100% { filter: brightness(1.5); opacity: 0; transform: scale(.15) rotate(17deg); } }
 .portrait-frame { position: relative; aspect-ratio: 0.79; overflow: hidden; background: var(--blue); border: 10px solid var(--white); box-shadow: 16px 18px 0 #030b1c; }
 .portrait-frame::before { content: ""; position: absolute; inset: 26px; border: 1px solid rgba(255,255,255,0.56); z-index: 4; }
 .portrait-sun { position: absolute; width: 230px; height: 230px; border-radius: 50%; background: var(--yellow); right: -35px; top: 40px; }

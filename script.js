@@ -82,4 +82,20 @@ if (heroDino && dinoImage && dinoNote) {
       }
     });
   }
+
+  function explodeDino() {
+    if (heroDino.classList.contains("is-exploded")) return;
+
+    heroDino.classList.add("is-exploded");
+    heroDino.setAttribute("aria-label", "Le dinosaure a explosé en taches rouges graphiques");
+    document.body.classList.add("dino-exploded");
+  }
+
+  heroDino.addEventListener("click", explodeDino);
+  heroDino.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      explodeDino();
+    }
+  });
 }
